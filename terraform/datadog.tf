@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    datadog = {
-      source  = "DataDog/datadog"
-      version = ">= 3.40.0"
-    }
-  }
-}
-
 variable "enable_datadog" { default = false }
 variable "datadog_api_key" { default = "" }
 variable "datadog_app_key" { default = "" }
@@ -17,6 +8,7 @@ provider "datadog" {
   api_key = var.datadog_api_key
   app_key = var.datadog_app_key
   api_url = "https://api.${var.datadog_site}"
+  validate = var.enable_datadog
 }
 
 resource "datadog_synthetics_test" "webapp_https" {
@@ -37,7 +29,7 @@ resource "datadog_synthetics_test" "webapp_https" {
       interval = 300
     }
   }
-  assertions {
+  assertion {
     type     = "statusCode"
     operator = "is"
     target   = 200
@@ -49,8 +41,8 @@ resource "datadog_synthetics_test" "webapp_https" {
   status    = "live"
 }
 
-output "datadog_test_public_id" {
-  value       = try(datadog_synthetics_test.webapp_https[0].public_id, null)
-  description = "Public ID of the Datadog synthetics test (when enabled)"
+output "datadog_test_id" {
+  value       = var.enable_datadog ? datadog_synthetics_test.webapp_https[0].id : null
+  description = "ID of the Datadog synthetics test (when enabled)"
 }
 

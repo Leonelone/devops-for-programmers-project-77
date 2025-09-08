@@ -7,13 +7,13 @@ init:
 	cd $(TF_DIR) && terraform init -input=false
 
 plan:
-	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && TERRAFORM_CONFIG=$(PWD)/.terraformrc terraform plan -input=false -var yc_token=$$YC_TOKEN
 
 apply:
-	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && TERRAFORM_CONFIG=$(PWD)/.terraformrc terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN
 
 destroy:
-	cd $(TF_DIR) && terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && TERRAFORM_CONFIG=$(PWD)/.terraformrc terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN
 
 .PHONY: datadog-plan datadog-apply
 
