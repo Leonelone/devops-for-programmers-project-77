@@ -1,0 +1,113 @@
+---
+- name: Prepare and deploy application
+  hosts: web
+  become: true
+  vars:
+    app_image: "leonelone/devops-for-programmers-project-77"
+    app_container_name: "webapp"
+    app_port: 8080
+  roles:
+    - role: geerlingguy.docker
+      tags: [docker]
+  tasks:
+    - name: Ensure community.docker is available
+      ansible.builtin.meta: noop
+      tags: [always]
+
+    - name: Run application container
+      community.docker.docker_container:
+        name: "{{ app_container_name }}"
+        image: "{{ app_image }}"
+        restart_policy: always
+        published_ports:
+          - "{{ app_port }}:80"
+      tags: [deploy]
+
+    - name: Configure nginx to reverse proxy HTTPS 443 -> app_port
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+            listen 443 ssl;
+            server_name _;
+            ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+            ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+            location / {
+              proxy_pass http://127.0.0.1:{{ app_port }};
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+          }
+      notify: Restart nginx
+      tags: [nginx]
+
+    - name: Install certbot and dependencies
+      ansible.builtin.apt:
+        name:
+          - certbot
+          - python3-certbot-nginx
+        state: present
+        update_cache: true
+      tags: [tls]
+
+    - name: Ensure HTTP listener for ACME challenge
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/00-acme.conf
+        content: |
+          server {
+            listen 80;
+            server_name {{ app_domain | default('_') }};
+            location /.well-known/acme-challenge/ {
+              root /var/www/html;
+            }
+            location / { return 200 'ok'; }
+          }
+      notify: Restart nginx
+      tags: [tls]
+
+    - name: Create webroot for ACME
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      tags: [tls]
+
+    - name: Obtain/renew Let’s Encrypt certificate
+      ansible.builtin.command: >-
+        certbot certonly --nginx -n
+        -d {{ app_domain }}
+        --agree-tos -m admin@{{ app_domain }} --redirect
+      when: app_domain is defined
+      tags: [tls]
+
+    - name: Configure nginx to use LE cert if present
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+            listen 443 ssl;
+            server_name {{ app_domain | default('_') }};
+            ssl_certificate /etc/letsencrypt/live/{{ app_domain }}/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/{{ app_domain }}/privkey.pem;
+            location / {
+              proxy_pass http://127.0.0.1:{{ app_port }};
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+          }
+      notify: Restart nginx
+      when: app_domain is defined
+      tags: [tls]
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
