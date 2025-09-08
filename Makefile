@@ -7,13 +7,21 @@ init:
 	cd $(TF_DIR) && terraform init -input=false
 
 plan:
-	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
+	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN
 
 apply:
-	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
+	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN
 
 destroy:
-	cd $(TF_DIR) && terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
+	cd $(TF_DIR) && terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN
+
+.PHONY: datadog-plan datadog-apply
+
+datadog-plan:
+	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN -var enable_datadog=true -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY -var app_domain=$$(terraform output -raw app_domain)
+
+datadog-apply:
+	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN -var enable_datadog=true -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY -var app_domain=$$(terraform output -raw app_domain)
 
 output:
 	cd $(TF_DIR) && terraform output

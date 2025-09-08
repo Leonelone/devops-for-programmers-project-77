@@ -1,0 +1,14 @@
+# Terraform local/state
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfstate*
+terraform/*.tfvars
+terraform/*.auto.tfvars
+terraform/.terraformrc
+
+# Python cache (inventory script)
+__pycache__/
+ansible/scripts/__pycache__/
+

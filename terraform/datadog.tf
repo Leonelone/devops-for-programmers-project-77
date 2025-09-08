@@ -7,9 +7,11 @@ terraform {
   }
 }
 
-variable "datadog_api_key" {}
-variable "datadog_app_key" {}
+variable "enable_datadog" { default = false }
+variable "datadog_api_key" { default = "" }
+variable "datadog_app_key" { default = "" }
 variable "datadog_site" { default = "datadoghq.com" }
+variable "app_domain" { default = "" }
 
 provider "datadog" {
   api_key = var.datadog_api_key
@@ -17,20 +19,13 @@ provider "datadog" {
   api_url = "https://api.${var.datadog_site}"
 }
 
-data "external" "app_domain" {
-  program = ["bash", "-lc", "terraform output -raw app_domain || true"]
-}
-
-locals {
-  app_domain = coalesce(try(data.external.app_domain.result["output"], null), "hexlet-student.ru")
-}
-
 resource "datadog_synthetics_test" "webapp_https" {
+  count   = var.enable_datadog ? 1 : 0
   type    = "api"
   subtype = "http"
   request_definition {
     method = "GET"
-    url    = "https://${local.app_domain}/"
+    url    = "https://${var.app_domain}/"
   }
   options_list {
     tick_every            = 300
@@ -48,13 +43,14 @@ resource "datadog_synthetics_test" "webapp_https" {
     target   = 200
   }
   name    = "Webapp HTTPS check"
-  message = "Webapp is not returning 200 at https://${local.app_domain}/ @slack-ops"
+  message = "Webapp is not returning 200 at https://${var.app_domain}/"
   locations = ["aws:eu-central-1"]
   tags      = ["env:prod", "app:webapp"]
   status    = "live"
 }
 
 output "datadog_test_public_id" {
-  value = datadog_synthetics_test.webapp_https.public_id
+  value       = try(datadog_synthetics_test.webapp_https[0].public_id, null)
+  description = "Public ID of the Datadog synthetics test (when enabled)"
 }
 
