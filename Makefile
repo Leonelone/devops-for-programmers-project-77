@@ -7,13 +7,13 @@ init:
 	cd $(TF_DIR) && terraform init -input=false
 
 plan:
-	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && terraform plan -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
 
 apply:
-	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
 
 destroy:
-	cd $(TF_DIR) && terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN
+	cd $(TF_DIR) && terraform destroy -auto-approve -input=false -var yc_token=$$YC_TOKEN -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY
 
 output:
 	cd $(TF_DIR) && terraform output
@@ -34,6 +34,10 @@ ansible-inventory:
 
 ansible-prepare: ansible-requirements ansible-inventory
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible -i $(ANSIBLE_DIR)/inventory.ini all -m ping
+
+.PHONY: ansible-datadog
+ansible-datadog:
+	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t datadog -e @ansible/group_vars/all/vault.yml --ask-vault-pass
 
 ansible-deploy:
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t docker,deploy,nginx

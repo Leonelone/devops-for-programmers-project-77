@@ -9,6 +9,14 @@
   roles:
     - role: geerlingguy.docker
       tags: [docker]
+    - role: datadog.datadog
+      vars:
+        datadog_config:
+          site: "{{ datadog_site }}"
+          tags:
+            - env:prod
+            - app:webapp
+      tags: [datadog]
   tasks:
     - name: Ensure community.docker is available
       ansible.builtin.meta: noop

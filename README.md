@@ -135,3 +135,46 @@ make ansible-tls
 ```
 
 This installs certbot, obtains a certificate for `hexlet-student.ru`, and reconfigures nginx to use it.
+
+## Datadog Monitoring
+
+Install the Datadog agent via Ansible and create a Synthetics HTTPS monitor via Terraform.
+
+### Prerequisites
+
+- Set environment variables:
+
+```bash
+export DATADOG_API_KEY=<your_datadog_api_key>
+export DATADOG_APP_KEY=<your_datadog_app_key>
+```
+
+- Create `ansible/group_vars/all/vault.yml` with vault-encrypted secrets, e.g.:
+
+```yaml
+$ANSIBLE_VAULT;1.1;AES256
+# ... encrypted content ...
+```
+
+Vault file should contain:
+
+```yaml
+vault_datadog_api_key: YOUR_API_KEY
+```
+
+### Deploy Datadog agent
+
+```bash
+make ansible-datadog
+```
+
+### Apply Datadog Terraform monitor
+
+Run plan/apply with Datadog keys exported as env vars (already wired in Makefile):
+
+```bash
+make plan
+make apply
+```
+
+Outputs include the Synthetics test public ID.
