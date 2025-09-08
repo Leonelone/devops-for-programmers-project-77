@@ -1,0 +1,12 @@
+---
+enable_list:
+  - empty-string-compare
+  - fqcn-builtins
+  - fqcn[action]
+
+warn_list:
+  - var_naming
+  - idiom
+
+skip_list:
+  - var-naming[no-role-prefix]

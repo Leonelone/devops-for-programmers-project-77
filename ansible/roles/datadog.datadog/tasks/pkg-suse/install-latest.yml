@@ -1,0 +1,8 @@
+---
+- name: Ensure Datadog agent is installed
+  ansible.builtin.package:
+    name: datadog-agent
+    state: latest # noqa package-latest
+  register: agent_datadog_agent_install
+  when: not ansible_check_mode
+  notify: restart datadog-agent

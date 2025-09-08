@@ -2,11 +2,9 @@
 import json
 import subprocess
 from pathlib import Path
-from jinja2 import Template
 
 ROOT = Path(__file__).resolve().parents[2]
 TERRAFORM_DIR = ROOT / "terraform"
-TEMPLATE_FILE = ROOT / "ansible" / "inventory.ini.j2"
 OUTPUT_FILE = ROOT / "ansible" / "inventory.ini"
 GROUP_VARS_ALL = ROOT / "ansible" / "group_vars" / "all"
 
@@ -34,11 +32,10 @@ def main():
     except subprocess.CalledProcessError:
         app_domain = None
 
-    with open(TEMPLATE_FILE) as f:
-        template = Template(f.read())
-    rendered = template.render(web_ips=web_ips)
-    with open(OUTPUT_FILE, "w") as f:
-        f.write(rendered)
+    lines = ["[web]\n"]
+    for ip in web_ips:
+        lines.append(f"{ip} ansible_user=ubuntu ansible_ssh_common_args='-o StrictHostKeyChecking=no'\n")
+    OUTPUT_FILE.write_text("".join(lines))
     print(f"Inventory written to {OUTPUT_FILE}")
 
     # Write group vars with domain if available

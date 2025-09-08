@@ -7,7 +7,7 @@
     app_container_name: "webapp"
     app_port: 8080
   roles:
-    - role: geerlingguy.docker
+    - role: leonelone
       tags: [docker]
     - role: datadog.datadog
       vars:

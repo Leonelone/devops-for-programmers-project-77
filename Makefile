@@ -23,6 +23,15 @@ datadog-plan:
 datadog-apply:
 	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN -var enable_datadog=true -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY -var app_domain=$$(terraform output -raw app_domain)
 
+# Compatibility targets (as in the referenced repo)
+.PHONY: install terrafrom-start ansible-start
+
+install: ansible-requirements
+
+terrafrom-start: init apply
+
+ansible-start: ansible-prepare ansible-deploy
+
 output:
 	cd $(TF_DIR) && terraform output
 
