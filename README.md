@@ -1,112 +1,114 @@
-### Hexlet tests and linter status:
+![Upmon](https://app.upmon.com/badge/e79fc7d8-acf0-42b8-af74-56602b/4gWjTEao-2.svg)
+
+### Статус тестов и линтера Hexlet:
 [![Actions Status](https://github.com/Leonelone/devops-for-programmers-project-77/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/Leonelone/devops-for-programmers-project-77/actions)
 
-## Terraform Infrastructure (Yandex Cloud)
+## Инфраструктура Terraform (Yandex Cloud)
 
-This project provisions:
+Проект разворачивает:
 
-- Two VM web servers with nginx serving HTTPS (self-signed TLS)
-- Network Load Balancer listening on TCP:443 spreading traffic across VMs
-- Managed PostgreSQL (Yandex Managed DB) cluster, database and user
+- Два веб-сервера (ВМ) с nginx по HTTPS (самоподписанный сертификат)
+- Сетевой балансировщик нагрузки (NLB) на TCP:443, распределяющий трафик между ВМ
+- Управляемый кластер PostgreSQL (Yandex Managed DB), базу и пользователя
 
-### Prerequisites
+### Предварительные требования
 
 - Terraform >= 1.3
-- Yandex Cloud account and OAuth token
-- SSH public key at `~/.ssh/id_rsa.pub`
+- Аккаунт в Yandex Cloud и OAuth-токен
+- Публичный SSH-ключ в `~/.ssh/id_rsa.pub`
 
-Set environment variable before running commands:
+Перед запуском команд установите переменную окружения:
 
 ```bash
-export YC_TOKEN=<your_yandex_cloud_oauth_token>
+export YC_TOKEN=<ваш_oauth_токен_yandex_cloud>
 ```
 
-Optional variables can be overridden via `terraform.tfvars` or `-var` flags:
+Необязательные переменные можно переопределять в `terraform.tfvars` или через `-var`:
 
-- `yc_folder_id` (default set in `terraform/main.tf`)
-- `vpc_network_id` (existing VPC network)
-- `zone` (default `ru-central1-a`)
+- `yc_folder_id` (значение по умолчанию в `terraform/main.tf`)
+- `vpc_network_id` (ID существующей сети VPC)
+- `zone` (по умолчанию `ru-central1-a`)
 
-### Usage
+### Использование
 
-Initialize backend and providers:
+Инициализация backend и провайдеров:
 
 ```bash
 make init
 ```
 
-Plan changes:
+План изменений:
 
 ```bash
 make plan
 ```
 
-Apply infrastructure:
+Применение инфраструктуры:
 
 ```bash
 make apply
 ```
 
-Show outputs (VM IPs, NLB address, PostgreSQL FQDN):
+Вывод значений (IP ВМ, адрес NLB, FQDN PostgreSQL):
 
 ```bash
 make output
 ```
 
-Destroy infrastructure:
+Удаление инфраструктуры:
 
 ```bash
 make destroy
 ```
 
-### Notes
+### Примечания
 
-- NLB performs TCP load balancing on port 443; each VM serves nginx with a self-signed certificate created via cloud-init.
-- PostgreSQL credentials are created as resources; consider storing sensitive values in a secure place and rotating the default password.
-- If using remote Terraform backend (e.g., Terraform Cloud), do not interrupt pending operations only locally; cancel via CLI or Terraform Cloud UI if needed.
+- NLB выполняет TCP-балансировку на порту 443; каждая ВМ отдает nginx с самоподписанным сертификатом, созданным через cloud-init.
+- Доступ к БД создается как ресурсы Terraform; храните секреты безопасно и периодически меняйте пароли.
+- При использовании удаленного backend Terraform (например, Terraform Cloud) не прерывайте операции только локально; отменяйте через CLI или UI Terraform Cloud.
 
-## Ansible Deployment
+## Деплой через Ansible
 
-All Ansible files are under `ansible/`:
+Все файлы Ansible находятся в `ansible/`:
 
-- `playbook.yml` — main playbook for preparation and deployment
-- `requirements.yml` — external roles and collections
-- `inventory.ini` — generated from Terraform outputs
-- `ansible.cfg` — Ansible configuration
+- `playbook.yml` — основной плейбук подготовки и деплоя
+- `requirements.yml` — внешние роли и коллекции
+- `inventory.ini` — генерируется из выходных данных Terraform
+- `ansible.cfg` — конфигурация Ansible
 
-Secrets must not be committed. Use Ansible Vault for sensitive values:
+Секреты нельзя коммитить. Используйте Ansible Vault для чувствительных значений:
 
 ```bash
 ansible-vault create ansible/group_vars/all/vault.yml
-# then reference with vars_files in your playbook if needed
+# затем подключайте через vars_files в плейбуке при необходимости
 ```
 
-### Prepare
+### Подготовка
 
 ```bash
 make ansible-prepare
 ```
 
-This installs roles/collections and generates inventory from Terraform outputs, then pings all hosts.
+Команда устанавливает роли/коллекции, генерирует инвентори из Terraform и проверяет доступность хостов (ping).
 
-### Deploy
+### Деплой
 
 ```bash
 make ansible-deploy
 ```
 
-This runs the play with tags `docker,deploy,nginx` to install Docker and run the app container behind nginx TLS.
+Запускаются задачи с тегами `docker,deploy,nginx`: установка Docker, запуск контейнера приложения за nginx (TLS).
 
-To run only a subset of tasks, pass tags explicitly:
+Для выборочного запуска укажите теги явно:
 
 ```bash
 ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook ansible/playbook.yml -t deploy
 ```
 
-## Domain and DNS
+## Домен и DNS
 
-- Registrar: register a domain (e.g., `hexlet-student.ru`).
-- After `make apply`, get name servers and IP via outputs:
+- Регистратор: зарегистрируйте домен (например, `hexlet-student.ru`).
+- После `make apply` получите NS и IP через outputs:
 
 ```bash
 make output
@@ -115,66 +117,65 @@ make output
 # app_domain            = hexlet-student.ru
 ```
 
-Steps:
-- In your registrar panel, set NS to values from `dns_zone_name_servers`.
-- Wait for delegation to propagate (can take hours).
-- The Terraform DNS zone creates an A record for the root domain pointing to the NLB IP.
+Шаги:
+- В панели регистратора установите NS из `dns_zone_name_servers`.
+- Дождитесь делегирования (от нескольких часов до суток).
+- Зона DNS в Terraform создаёт A-запись для корня домена на IP балансировщика.
 
-Your app will be available at:
+Ваше приложение будет доступно по адресу:
 
 ```text
 https://hexlet-student.ru
 ```
 
-### TLS via Let’s Encrypt
+### TLS через Let’s Encrypt
 
-After DNS delegation propagates, request and configure certificates:
+После делегирования DNS запросите и подключите сертификаты:
 
 ```bash
 make ansible-tls
 ```
 
-This installs certbot, obtains a certificate for `hexlet-student.ru`, and reconfigures nginx to use it.
+Команда установит certbot, получит сертификат для `hexlet-student.ru` и настроит nginx.
 
-## Datadog Monitoring
+## Мониторинг Datadog
 
-Install the Datadog agent via Ansible and create a Synthetics HTTPS monitor via Terraform.
+Установите агент Datadog через Ansible и создайте Synthetics HTTPS-монитор через Terraform.
 
-### Prerequisites
+### Предварительные требования
 
-- Set environment variables:
+- Установите переменные окружения:
 
 ```bash
-export DATADOG_API_KEY=<your_datadog_api_key>
-export DATADOG_APP_KEY=<your_datadog_app_key>
+export DATADOG_API_KEY=<ваш_datadog_api_key>
+export DATADOG_APP_KEY=<ваш_datadog_app_key>
 ```
 
-- Create `ansible/group_vars/all/vault.yml` with vault-encrypted secrets, e.g.:
+- Создайте `ansible/group_vars/all/vault.yml` с зашифрованными секретами Vault, например:
 
 ```yaml
 $ANSIBLE_VAULT;1.1;AES256
-# ... encrypted content ...
+# ... зашифрованное содержимое ...
 ```
 
-Vault file should contain:
+Файл Vault должен содержать:
 
 ```yaml
-vault_datadog_api_key: YOUR_API_KEY
+vault_datadog_api_key: ВАШ_API_KEY
 ```
 
-### Deploy Datadog agent
+### Установка агента Datadog
 
 ```bash
 make ansible-datadog
 ```
 
-### Apply Datadog Terraform monitor
+### Применение Terraform-монитора Datadog
 
-Run plan/apply with Datadog keys exported as env vars (already wired in Makefile):
+Запустите plan/apply с ключами Datadog в окружении (уже подключены в Makefile):
 
 ```bash
 make plan
 make apply
-```
+```В выводах будет публичный ID Synthetics-теста.
 
-Outputs include the Synthetics test public ID.
