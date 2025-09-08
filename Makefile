@@ -45,3 +45,18 @@ ansible-deploy:
 ansible-tls:
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t tls
 
+# Hexlet-compatible targets
+.PHONY: create_structure install_app create_balancer deploy_all destroy_all
+
+create_structure: init apply
+
+install_app: ansible-prepare ansible-deploy
+
+create_balancer:
+	# Балансировщик создается вместе с инфраструктурой
+	@echo "NLB создается в Terraform apply; дополнительных действий не требуется"
+
+deploy_all: create_structure install_app
+
+destroy_all: destroy
+
