@@ -181,3 +181,30 @@ make plan
 make apply
 ```
 В выводах будет публичный ID Synthetics-теста.
+
+## Отладка
+
+Если возникают проблемы с запуском контейнера, можно использовать следующие команды для отладки:
+
+```bash
+# Проверка статуса Docker сервиса
+sudo systemctl status docker
+
+# Проверка наличия образа
+docker images | grep leonelone/devops-for-programmers-project-74
+
+# Проверка запущенных контейнеров
+docker ps -a
+
+# Просмотр логов контейнера
+docker logs webapp
+
+# Проверка сетевых настроек
+docker network ls
+```
+
+Также можно запустить Ansible плейбук с флагом verbose для получения подробной информации:
+
+```bash
+ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook ansible/playbook.yml -t docker,deploy,nginx -vvv
+```

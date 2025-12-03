@@ -24,6 +24,19 @@
       ansible.builtin.meta: noop
       tags: [always]
 
+    - name: Check if Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+      register: docker_service
+      tags: [docker]
+
+    - name: Debug Docker service status
+      ansible.builtin.debug:
+        msg: "Docker service status: {{ docker_service }}"
+      when: docker_service is defined
+      tags: [docker]
+
     - name: Install pip and docker module with pip
       include_role:
         name: geerlingguy.pip
@@ -40,6 +53,25 @@
         state: started
         ports:
           - 80:80
+      register: container_result
+      tags: [deploy]
+
+    - name: Check container status
+      ansible.builtin.debug:
+        msg: "Container {{ app_container_name }} started successfully"
+      when: container_result is succeeded
+      tags: [deploy]
+
+    - name: Debug container failure
+      ansible.builtin.debug:
+        msg: "Failed to start container {{ app_container_name }}: {{ container_result.msg }}"
+      when: container_result is failed
+      tags: [deploy]
+
+    - name: Fail if container failed to start
+      ansible.builtin.fail:
+        msg: "Failed to start container {{ app_container_name }}: {{ container_result.msg }}"
+      when: container_result is failed
       tags: [deploy]
 
     - name: Configure nginx to reverse proxy HTTPS 443 -> app_port
