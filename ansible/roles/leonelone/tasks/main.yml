@@ -25,4 +25,3 @@
     name: ubuntu
     groups: docker
     append: true
-

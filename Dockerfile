@@ -1,7 +1,16 @@
 FROM nginx:alpine
 
 # Создаем простую HTML страницу
-RUN echo "<h1>Hello from Docker Container</h1>" > /usr/share/nginx/html/index.html
+RUN echo "<!DOCTYPE html>\
+<html>\
+<head>\
+    <title>Тестовое приложение</title>\
+</head>\
+<body>\
+    <h1>Привет из Docker контейнера</h1>\
+    <p>Это тестовое приложение для курса DevOps.</p>\
+</body>\
+</html>" > /usr/share/nginx/html/index.html
 
 # Открываем порт 80
 EXPOSE 80

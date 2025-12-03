@@ -50,7 +50,8 @@ locals {
               runcmd:
                 - mkdir -p /etc/nginx/ssl
                 - openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/selfsigned.key -out /etc/nginx/ssl/selfsigned.crt -subj "/CN=example.local"
-                - printf 'server {\n  listen 443 ssl;\n  server_name _;\n  ssl_certificate /etc/nginx/ssl/selfsigned.crt;\n  ssl_certificate_key /etc/nginx/ssl/selfsigned.key;\n  location / { return 200 "Hello from $(hostname)\\n"; }\n}\n' > /etc/nginx/sites-available/default
+                # Создаем простой сайт по умолчанию, который не будет конфликтовать с Ansible
+                - printf 'server {\n  listen 80;\n  server_name _;\n  location / { return 200 "Начальная настройка - будет заменена Ansible\\n"; }\n}\n' > /etc/nginx/sites-available/default
                 - systemctl restart nginx
   EOT
 }

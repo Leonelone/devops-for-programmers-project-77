@@ -23,12 +23,12 @@ datadog-plan:
 datadog-apply:
 	cd $(TF_DIR) && terraform apply -auto-approve -input=false -var yc_token=$$YC_TOKEN -var enable_datadog=true -var datadog_api_key=$$DATADOG_API_KEY -var datadog_app_key=$$DATADOG_APP_KEY -var app_domain=$$(terraform output -raw app_domain)
 
-# Compatibility targets (as in the referenced repo)
-.PHONY: install terrafrom-start ansible-start
+# Совместимость с целями (как в ссылочном репозитории)
+.PHONY: install terraform-start ansible-start
 
 install: ansible-requirements
 
-terrafrom-start: init apply
+terraform-start: init apply
 
 ansible-start: ansible-prepare ansible-deploy
 
@@ -66,7 +66,7 @@ ansible-deploy:
 ansible-tls:
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t tls
 
-# Hexlet-compatible targets
+# Цели совместимые с Hexlet
 .PHONY: create_structure install_app create_balancer deploy_all destroy_all
 
 create_structure: init apply
