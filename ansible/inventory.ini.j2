@@ -1,5 +1,4 @@
 [web]
 {% for ip in web_ips %}
-{{ ip }} ansible_user=ubuntu ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+{{ ip }} ansible_user=ubuntu
 {% endfor %}
-
