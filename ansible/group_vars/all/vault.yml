@@ -1,0 +1,4 @@
+# Пример содержимого vault.yml файла
+# В реальном проекте этот файл должен быть зашифрован с помощью Ansible Vault
+vault_datadog_api_key: "your_datadog_api_key_here"
+vault_datadog_site: "datadoghq.com"

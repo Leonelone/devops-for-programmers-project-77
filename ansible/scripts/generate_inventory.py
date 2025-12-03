@@ -34,7 +34,7 @@ def main():
 
     lines = ["[web]\n"]
     for ip in web_ips:
-        lines.append(f"{ip} ansible_user=ubuntu ansible_ssh_common_args='-o StrictHostKeyChecking=no'\n")
+        lines.append(f"{ip} ansible_user=ubuntu\n")
     OUTPUT_FILE.write_text("".join(lines))
     print(f"Inventory written to {OUTPUT_FILE}")
 
@@ -47,4 +47,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

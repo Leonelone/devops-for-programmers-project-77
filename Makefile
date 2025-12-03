@@ -52,9 +52,13 @@ ansible-inventory:
 ansible-prepare: ansible-requirements ansible-inventory
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible -i $(ANSIBLE_DIR)/inventory.ini all -m ping
 
-.PHONY: ansible-datadog
+.PHONY: ansible-datadog ansible-vault-create
+
 ansible-datadog:
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t datadog -e @ansible/group_vars/all/vault.yml --ask-vault-pass
+
+ansible-vault-create:
+	ansible-vault create ansible/group_vars/all/vault.yml
 
 ansible-deploy:
 	ANSIBLE_CONFIG=$(ANSIBLE_DIR)/ansible.cfg ansible-playbook $(ANSIBLE_DIR)/playbook.yml -t docker,deploy,nginx
@@ -76,4 +80,3 @@ create_balancer:
 deploy_all: create_structure install_app
 
 destroy_all: destroy
-

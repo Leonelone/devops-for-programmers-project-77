@@ -6,12 +6,15 @@
     app_image: "leonelone/devops-for-programmers-project-74:latest"
     app_container_name: "webapp"
     app_port: 8080
+    datadog_api_key: "{{ vault_datadog_api_key | default('') }}"
+    datadog_site: "{{ vault_datadog_site | default('datadoghq.com') }}"
   roles:
     - role: leonelone
       tags: [docker]
     - role: datadog.datadog
       vars:
         datadog_config:
+          api_key: "{{ datadog_api_key }}"
           site: "{{ datadog_site }}"
           tags:
             - env:prod

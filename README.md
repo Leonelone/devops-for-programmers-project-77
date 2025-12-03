@@ -10,6 +10,7 @@
 - Два веб-сервера (ВМ) с nginx по HTTPS (самоподписанный сертификат)
 - Сетевой балансировщик нагрузки (NLB) на TCP:443, распределяющий трафик между ВМ
 - Управляемый кластер PostgreSQL (Yandex Managed DB), базу и пользователя
+- DNS-зону с A-записью для домена, указывающей на IP балансировщика
 
 ### Предварительные требования
 
@@ -28,6 +29,7 @@ export YC_TOKEN=<ваш_oauth_токен_yandex_cloud>
 - `yc_folder_id` (значение по умолчанию в `terraform/main.tf`)
 - `vpc_network_id` (ID существующей сети VPC)
 - `zone` (по умолчанию `ru-central1-a`)
+- `domain_name` (по умолчанию `hexlet-student.ru`)
 
 ### Использование
 
@@ -177,5 +179,5 @@ make ansible-datadog
 ```bash
 make plan
 make apply
-```В выводах будет публичный ID Synthetics-теста.
-
+```
+В выводах будет публичный ID Synthetics-теста.
